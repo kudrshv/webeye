@@ -64,22 +64,18 @@ flowScheduler.add(loading_trialRoutineEnd());
 flowScheduler.add(webcam_trialRoutineBegin());
 flowScheduler.add(webcam_trialRoutineEachFrame());
 flowScheduler.add(webcam_trialRoutineEnd());
-flowScheduler.add(intro_calibatrion_trialRoutineBegin());
-flowScheduler.add(intro_calibatrion_trialRoutineEachFrame());
-flowScheduler.add(intro_calibatrion_trialRoutineEnd());
-const trialsLoopScheduler = new Scheduler(psychoJS);
-flowScheduler.add(trialsLoopBegin(trialsLoopScheduler));
-flowScheduler.add(trialsLoopScheduler);
-flowScheduler.add(trialsLoopEnd);
+const calib_blockLoopScheduler = new Scheduler(psychoJS);
+flowScheduler.add(calib_blockLoopBegin(calib_blockLoopScheduler));
+flowScheduler.add(calib_blockLoopScheduler);
+flowScheduler.add(calib_blockLoopEnd);
 
 
-flowScheduler.add(intro_validation_trialRoutineBegin());
-flowScheduler.add(intro_validation_trialRoutineEachFrame());
-flowScheduler.add(intro_validation_trialRoutineEnd());
-const val_loopLoopScheduler = new Scheduler(psychoJS);
-flowScheduler.add(val_loopLoopBegin(val_loopLoopScheduler));
-flowScheduler.add(val_loopLoopScheduler);
-flowScheduler.add(val_loopLoopEnd);
+
+
+
+
+
+
 
 
 const stim_loopLoopScheduler = new Scheduler(psychoJS);
@@ -155,6 +151,9 @@ var validation_text;
 var mouse_4;
 var validation_trialClock;
 var val_dot;
+var q_checkClock;
+var q_text;
+var mouse_5;
 var stim_trialClock;
 var stim_image;
 var globalClock;
@@ -196,6 +195,11 @@ async function experimentInit() {
     window.gazeBuffer = [];
   };
   
+  // ---- настройки калибровки ----
+  window.calNClicks = 3;      // сколько раз кликать каждую точку
+  window.maxErrDeg  = 3;    // допустимая ошибка (градусы); больше — калибровка повторяется
+  window.calibAttempt = 0;
+  window.valErrors = [];
   loading_text = new visual.TextStim({
     win: psychoJS.window,
     name: 'loading_text',
@@ -280,6 +284,8 @@ async function experimentInit() {
     win: psychoJS.window,
   });
   mouse_4.mouseClock = new util.Clock();
+  window.webgazer.removeMouseEventListeners(); // дальше мышь модель не трогает
+  window.valErrors = [];
   // Initialize components for Routine "validation_trial"
   validation_trialClock = new util.Clock();
   val_dot = new visual.Polygon({
@@ -298,6 +304,24 @@ async function experimentInit() {
     interpolate: true, 
   });
   
+  // Initialize components for Routine "q_check"
+  q_checkClock = new util.Clock();
+  q_text = new visual.TextStim({
+    win: psychoJS.window,
+    name: 'q_text',
+    text: ' ',
+    font: 'Arial',
+    units: undefined, 
+    pos: [0, 0], draggable: false, height: 0.05,  wrapWidth: undefined, ori: 0.0,
+    languageStyle: 'LTR',
+    color: new util.Color('white'),  opacity: undefined,
+    depth: 0.0 
+  });
+  
+  mouse_5 = new core.Mouse({
+    win: psychoJS.window,
+  });
+  mouse_5.mouseClock = new util.Clock();
   // Initialize components for Routine "stim_trial"
   stim_trialClock = new util.Clock();
   stim_image = new visual.ImageStim({
@@ -447,6 +471,8 @@ function webcam_trialRoutineBegin(snapshot) {
     routineTimer.reset();
     webcam_trialMaxDurationReached = false;
     // update component parameters for each repeat
+    window.webgazer.saveDataAcrossSessions(false);  // не хранить и не подгружать калибровку из браузера
+    window.webgazer.clearData();                    // стереть то, что осталось от прошлых запусков
     // Show webcam thumbnail and face feedback box, but not face overlay and gaze dot
     window.webgazer.params.showVideoPreview = true;
     window.webgazer.params.showFaceFeedbackBox = true;
@@ -562,141 +588,47 @@ function webcam_trialRoutineEnd(snapshot) {
 }
 
 
-var intro_calibatrion_trialMaxDurationReached;
-var gotValidClick;
-var intro_calibatrion_trialMaxDuration;
-var intro_calibatrion_trialComponents;
-function intro_calibatrion_trialRoutineBegin(snapshot) {
-  return async function () {
-    TrialHandler.fromSnapshot(snapshot); // ensure that .thisN vals are up to date
+var calib_block;
+function calib_blockLoopBegin(calib_blockLoopScheduler, snapshot) {
+  return async function() {
+    TrialHandler.fromSnapshot(snapshot); // update internal variables (.thisN etc) of the loop
     
-    //--- Prepare to start Routine 'intro_calibatrion_trial' ---
-    t = 0;
-    frameN = -1;
-    continueRoutine = true; // until we're told otherwise
-    // keep track of whether this Routine was forcibly ended
-    routineForceEnded = false;
-    intro_calibatrion_trialClock.reset();
-    routineTimer.reset();
-    intro_calibatrion_trialMaxDurationReached = false;
-    // update component parameters for each repeat
-    // setup some python lists for storing info about the mouse_2
-    gotValidClick = false; // until a click is received
-    psychoJS.experiment.addData('intro_calibatrion_trial.started', globalClock.getTime());
-    intro_calibatrion_trialMaxDuration = null
-    // keep track of which components have finished
-    intro_calibatrion_trialComponents = [];
-    intro_calibatrion_trialComponents.push(calibration_text);
-    intro_calibatrion_trialComponents.push(mouse_2);
+    // set up handler to look after randomisation of conditions etc
+    calib_block = new TrialHandler({
+      psychoJS: psychoJS,
+      nReps: 3, method: TrialHandler.Method.SEQUENTIAL,
+      extraInfo: expInfo, originPath: undefined,
+      trialList: undefined,
+      seed: undefined, name: 'calib_block'
+    });
+    psychoJS.experiment.addLoop(calib_block); // add the loop to the experiment
+    currentLoop = calib_block;  // we're now the current loop
     
-    intro_calibatrion_trialComponents.forEach( function(thisComponent) {
-      if ('status' in thisComponent)
-        thisComponent.status = PsychoJS.Status.NOT_STARTED;
-       });
-    return Scheduler.Event.NEXT;
-  }
-}
-
-
-var prevButtonState;
-var _mouseButtons;
-function intro_calibatrion_trialRoutineEachFrame() {
-  return async function () {
-    //--- Loop for each frame of Routine 'intro_calibatrion_trial' ---
-    // get current time
-    t = intro_calibatrion_trialClock.getTime();
-    frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
-    // update/draw components on each frame
+    // Schedule all the trials in the trialList:
+    calib_block.forEach(function() {
+      snapshot = calib_block.getSnapshot();
     
-    // *calibration_text* updates
-    if (t >= 0.0 && calibration_text.status === PsychoJS.Status.NOT_STARTED) {
-      // keep track of start time/frame for later
-      calibration_text.tStart = t;  // (not accounting for frame time here)
-      calibration_text.frameNStart = frameN;  // exact frame index
-      
-      calibration_text.setAutoDraw(true);
-    }
-    
-    
-    // if calibration_text is active this frame...
-    if (calibration_text.status === PsychoJS.Status.STARTED) {
-    }
-    
-    // *mouse_2* updates
-    if (t >= 0.0 && mouse_2.status === PsychoJS.Status.NOT_STARTED) {
-      // keep track of start time/frame for later
-      mouse_2.tStart = t;  // (not accounting for frame time here)
-      mouse_2.frameNStart = frameN;  // exact frame index
-      
-      mouse_2.status = PsychoJS.Status.STARTED;
-      mouse_2.mouseClock.reset();
-      prevButtonState = mouse_2.getPressed();  // if button is down already this ISN'T a new click
-    }
-    
-    // if mouse_2 is active this frame...
-    if (mouse_2.status === PsychoJS.Status.STARTED) {
-      _mouseButtons = mouse_2.getPressed();
-      if (!_mouseButtons.every( (e,i,) => (e == prevButtonState[i]) )) { // button state changed?
-        prevButtonState = _mouseButtons;
-        if (_mouseButtons.reduce( (e, acc) => (e+acc) ) > 0) { // state changed to a new click
-          // end routine on response
-          continueRoutine = false;
-        }
-      }
-    }
-    // check for quit (typically the Esc key)
-    if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {
-      return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);
-    }
-    
-    // check if the Routine should terminate
-    if (!continueRoutine) {  // a component has requested a forced-end of Routine
-      routineForceEnded = true;
-      return Scheduler.Event.NEXT;
-    }
-    
-    continueRoutine = false;  // reverts to True if at least one component still running
-    intro_calibatrion_trialComponents.forEach( function(thisComponent) {
-      if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {
-        continueRoutine = true;
-      }
+      calib_blockLoopScheduler.add(importConditions(snapshot));
+      calib_blockLoopScheduler.add(intro_calibatrion_trialRoutineBegin(snapshot));
+      calib_blockLoopScheduler.add(intro_calibatrion_trialRoutineEachFrame());
+      calib_blockLoopScheduler.add(intro_calibatrion_trialRoutineEnd(snapshot));
+      const trialsLoopScheduler = new Scheduler(psychoJS);
+      calib_blockLoopScheduler.add(trialsLoopBegin(trialsLoopScheduler, snapshot));
+      calib_blockLoopScheduler.add(trialsLoopScheduler);
+      calib_blockLoopScheduler.add(trialsLoopEnd);
+      calib_blockLoopScheduler.add(intro_validation_trialRoutineBegin(snapshot));
+      calib_blockLoopScheduler.add(intro_validation_trialRoutineEachFrame());
+      calib_blockLoopScheduler.add(intro_validation_trialRoutineEnd(snapshot));
+      const val_loopLoopScheduler = new Scheduler(psychoJS);
+      calib_blockLoopScheduler.add(val_loopLoopBegin(val_loopLoopScheduler, snapshot));
+      calib_blockLoopScheduler.add(val_loopLoopScheduler);
+      calib_blockLoopScheduler.add(val_loopLoopEnd);
+      calib_blockLoopScheduler.add(q_checkRoutineBegin(snapshot));
+      calib_blockLoopScheduler.add(q_checkRoutineEachFrame());
+      calib_blockLoopScheduler.add(q_checkRoutineEnd(snapshot));
+      calib_blockLoopScheduler.add(calib_blockLoopEndIteration(calib_blockLoopScheduler, snapshot));
     });
     
-    // refresh the screen if continuing
-    if (continueRoutine) {
-      return Scheduler.Event.FLIP_REPEAT;
-    } else {
-      return Scheduler.Event.NEXT;
-    }
-  };
-}
-
-
-var _mouseXYs;
-function intro_calibatrion_trialRoutineEnd(snapshot) {
-  return async function () {
-    //--- Ending Routine 'intro_calibatrion_trial' ---
-    intro_calibatrion_trialComponents.forEach( function(thisComponent) {
-      if (typeof thisComponent.setAutoDraw === 'function') {
-        thisComponent.setAutoDraw(false);
-      }
-    });
-    psychoJS.experiment.addData('intro_calibatrion_trial.stopped', globalClock.getTime());
-    // store data for psychoJS.experiment (ExperimentHandler)
-    _mouseXYs = mouse_2.getPos();
-    _mouseButtons = mouse_2.getPressed();
-    psychoJS.experiment.addData('mouse_2.x', _mouseXYs[0]);
-    psychoJS.experiment.addData('mouse_2.y', _mouseXYs[1]);
-    psychoJS.experiment.addData('mouse_2.leftButton', _mouseButtons[0]);
-    psychoJS.experiment.addData('mouse_2.midButton', _mouseButtons[1]);
-    psychoJS.experiment.addData('mouse_2.rightButton', _mouseButtons[2]);
-    // the Routine "intro_calibatrion_trial" was not non-slip safe, so reset the non-slip timer
-    routineTimer.reset();
-    
-    // Routines running outside a loop should always advance the datafile row
-    if (currentLoop === psychoJS.experiment) {
-      psychoJS.experiment.nextEntry(snapshot);
-    }
     return Scheduler.Event.NEXT;
   }
 }
@@ -830,6 +762,38 @@ function val_loopLoopEndIteration(scheduler, snapshot) {
 }
 
 
+async function calib_blockLoopEnd() {
+  // terminate loop
+  psychoJS.experiment.removeLoop(calib_block);
+  // update the current loop from the ExperimentHandler
+  if (psychoJS.experiment._unfinishedLoops.length>0)
+    currentLoop = psychoJS.experiment._unfinishedLoops.at(-1);
+  else
+    currentLoop = psychoJS.experiment;  // so we use addData from the experiment
+  return Scheduler.Event.NEXT;
+}
+
+
+function calib_blockLoopEndIteration(scheduler, snapshot) {
+  // ------Prepare for next entry------
+  return async function () {
+    if (typeof snapshot !== 'undefined') {
+      // ------Check if user ended loop early------
+      if (snapshot.finished) {
+        // Check for and save orphaned data
+        if (psychoJS.experiment.isEntryEmpty()) {
+          psychoJS.experiment.nextEntry(snapshot);
+        }
+        scheduler.stop();
+      } else {
+        psychoJS.experiment.nextEntry(snapshot);
+      }
+    return Scheduler.Event.NEXT;
+    }
+  };
+}
+
+
 var stim_loop;
 function stim_loopLoopBegin(stim_loopLoopScheduler, snapshot) {
   return async function() {
@@ -894,6 +858,149 @@ function stim_loopLoopEndIteration(scheduler, snapshot) {
 }
 
 
+var intro_calibatrion_trialMaxDurationReached;
+var gotValidClick;
+var intro_calibatrion_trialMaxDuration;
+var intro_calibatrion_trialComponents;
+function intro_calibatrion_trialRoutineBegin(snapshot) {
+  return async function () {
+    TrialHandler.fromSnapshot(snapshot); // ensure that .thisN vals are up to date
+    
+    //--- Prepare to start Routine 'intro_calibatrion_trial' ---
+    t = 0;
+    frameN = -1;
+    continueRoutine = true; // until we're told otherwise
+    // keep track of whether this Routine was forcibly ended
+    routineForceEnded = false;
+    intro_calibatrion_trialClock.reset();
+    routineTimer.reset();
+    intro_calibatrion_trialMaxDurationReached = false;
+    // update component parameters for each repeat
+    // setup some python lists for storing info about the mouse_2
+    gotValidClick = false; // until a click is received
+    psychoJS.experiment.addData('intro_calibatrion_trial.started', globalClock.getTime());
+    intro_calibatrion_trialMaxDuration = null
+    // keep track of which components have finished
+    intro_calibatrion_trialComponents = [];
+    intro_calibatrion_trialComponents.push(calibration_text);
+    intro_calibatrion_trialComponents.push(mouse_2);
+    
+    intro_calibatrion_trialComponents.forEach( function(thisComponent) {
+      if ('status' in thisComponent)
+        thisComponent.status = PsychoJS.Status.NOT_STARTED;
+       });
+    return Scheduler.Event.NEXT;
+  }
+}
+
+
+var prevButtonState;
+var _mouseButtons;
+function intro_calibatrion_trialRoutineEachFrame() {
+  return async function () {
+    //--- Loop for each frame of Routine 'intro_calibatrion_trial' ---
+    // get current time
+    t = intro_calibatrion_trialClock.getTime();
+    frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
+    // update/draw components on each frame
+    
+    // *calibration_text* updates
+    if (t >= 0.0 && calibration_text.status === PsychoJS.Status.NOT_STARTED) {
+      // keep track of start time/frame for later
+      calibration_text.tStart = t;  // (not accounting for frame time here)
+      calibration_text.frameNStart = frameN;  // exact frame index
+      
+      calibration_text.setAutoDraw(true);
+    }
+    
+    
+    // if calibration_text is active this frame...
+    if (calibration_text.status === PsychoJS.Status.STARTED) {
+    }
+    
+    // *mouse_2* updates
+    if (t >= 0.0 && mouse_2.status === PsychoJS.Status.NOT_STARTED) {
+      // keep track of start time/frame for later
+      mouse_2.tStart = t;  // (not accounting for frame time here)
+      mouse_2.frameNStart = frameN;  // exact frame index
+      
+      mouse_2.status = PsychoJS.Status.STARTED;
+      mouse_2.mouseClock.reset();
+      prevButtonState = mouse_2.getPressed();  // if button is down already this ISN'T a new click
+    }
+    
+    // if mouse_2 is active this frame...
+    if (mouse_2.status === PsychoJS.Status.STARTED) {
+      _mouseButtons = mouse_2.getPressed();
+      if (!_mouseButtons.every( (e,i,) => (e == prevButtonState[i]) )) { // button state changed?
+        prevButtonState = _mouseButtons;
+        if (_mouseButtons.reduce( (e, acc) => (e+acc) ) > 0) { // state changed to a new click
+          // end routine on response
+          continueRoutine = false;
+        }
+      }
+    }
+    // check for quit (typically the Esc key)
+    if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {
+      return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);
+    }
+    
+    // check if the Routine should terminate
+    if (!continueRoutine) {  // a component has requested a forced-end of Routine
+      routineForceEnded = true;
+      return Scheduler.Event.NEXT;
+    }
+    
+    continueRoutine = false;  // reverts to True if at least one component still running
+    intro_calibatrion_trialComponents.forEach( function(thisComponent) {
+      if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {
+        continueRoutine = true;
+      }
+    });
+    
+    // refresh the screen if continuing
+    if (continueRoutine) {
+      return Scheduler.Event.FLIP_REPEAT;
+    } else {
+      return Scheduler.Event.NEXT;
+    }
+  };
+}
+
+
+var _mouseXYs;
+function intro_calibatrion_trialRoutineEnd(snapshot) {
+  return async function () {
+    //--- Ending Routine 'intro_calibatrion_trial' ---
+    intro_calibatrion_trialComponents.forEach( function(thisComponent) {
+      if (typeof thisComponent.setAutoDraw === 'function') {
+        thisComponent.setAutoDraw(false);
+      }
+    });
+    psychoJS.experiment.addData('intro_calibatrion_trial.stopped', globalClock.getTime());
+    // store data for psychoJS.experiment (ExperimentHandler)
+    _mouseXYs = mouse_2.getPos();
+    _mouseButtons = mouse_2.getPressed();
+    psychoJS.experiment.addData('mouse_2.x', _mouseXYs[0]);
+    psychoJS.experiment.addData('mouse_2.y', _mouseXYs[1]);
+    psychoJS.experiment.addData('mouse_2.leftButton', _mouseButtons[0]);
+    psychoJS.experiment.addData('mouse_2.midButton', _mouseButtons[1]);
+    psychoJS.experiment.addData('mouse_2.rightButton', _mouseButtons[2]);
+    window.calibAttempt += 1;
+    window.webgazer.clearData();                 // каждая попытка — с нуля
+    window.webgazer.addMouseEventListeners();    // клики снова обучают модель
+    // the Routine "intro_calibatrion_trial" was not non-slip safe, so reset the non-slip timer
+    routineTimer.reset();
+    
+    // Routines running outside a loop should always advance the datafile row
+    if (currentLoop === psychoJS.experiment) {
+      psychoJS.experiment.nextEntry(snapshot);
+    }
+    return Scheduler.Event.NEXT;
+  }
+}
+
+
 var calibration_trialMaxDurationReached;
 var calibration_trialMaxDuration;
 var calibration_trialComponents;
@@ -926,6 +1033,10 @@ function calibration_trialRoutineBegin(snapshot) {
     ];
     console.log(newPos);
     calibration_square.setPos(newPos);
+    
+    window.calClicks = 0;
+    window.calWasPressed = false;
+    calibration_square.setOpacity(1);
     psychoJS.experiment.addData('calibration_trial.started', globalClock.getTime());
     calibration_trialMaxDuration = null
     // keep track of which components have finished
@@ -964,46 +1075,6 @@ function calibration_trialRoutineEachFrame() {
     if (calibration_square.status === PsychoJS.Status.STARTED) {
     }
     
-    // *mouse_3* updates
-    if (t >= 0.0 && mouse_3.status === PsychoJS.Status.NOT_STARTED) {
-      // keep track of start time/frame for later
-      mouse_3.tStart = t;  // (not accounting for frame time here)
-      mouse_3.frameNStart = frameN;  // exact frame index
-      
-      mouse_3.status = PsychoJS.Status.STARTED;
-      mouse_3.mouseClock.reset();
-      prevButtonState = mouse_3.getPressed();  // if button is down already this ISN'T a new click
-    }
-    
-    // if mouse_3 is active this frame...
-    if (mouse_3.status === PsychoJS.Status.STARTED) {
-      _mouseButtons = mouse_3.getPressed();
-      if (!_mouseButtons.every( (e,i,) => (e == prevButtonState[i]) )) { // button state changed?
-        prevButtonState = _mouseButtons;
-        if (_mouseButtons.reduce( (e, acc) => (e+acc) ) > 0) { // state changed to a new click
-          // check if the mouse was inside our 'clickable' objects
-          gotValidClick = false;
-          mouse_3.clickableObjects = eval(calibration_square)
-          ;// make sure the mouse's clickable objects are an array
-          if (!Array.isArray(mouse_3.clickableObjects)) {
-              mouse_3.clickableObjects = [mouse_3.clickableObjects];
-          }
-          // iterate through clickable objects and check each
-          for (const obj of mouse_3.clickableObjects) {
-              if (obj.contains(mouse_3)) {
-                  gotValidClick = true;
-                  mouse_3.clicked_name.push(obj.name);
-              }
-          }
-          if (!gotValidClick) {
-              mouse_3.clicked_name.push(null);
-          }
-          if (gotValidClick === true) { // end routine on response
-            continueRoutine = false;
-          }
-        }
-      }
-    }
     // Hide webcam thumbnail if eyes are in validation box
     if (webgazer.checkEyesInValidationBox() === true) {
       // If last time that eyes were outside of validation box was longer than 
@@ -1022,6 +1093,17 @@ function calibration_trialRoutineEachFrame() {
         document.getElementById('webgazerVideoFeed').style.display = 'block';
     }
     
+    
+       // считаем клики по квадрату (только новые нажатия)
+    const _pressed = mouse_3.getPressed()[0] === 1;
+    if (_pressed && !window.calWasPressed && mouse_3.isPressedIn(calibration_square)) {
+      window.calClicks += 1;
+      calibration_square.setOpacity(1 - 0.7 * window.calClicks / window.calNClicks); // квадрат бледнеет
+    }
+    window.calWasPressed = _pressed;
+    if (window.calClicks >= window.calNClicks) {
+      continueRoutine = false;
+    }
     // check for quit (typically the Esc key)
     if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {
       return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);
@@ -1244,6 +1326,8 @@ function validation_trialRoutineBegin(snapshot) {
     // remember where the dot is on the screen (px of the browser window) and the screen/window sizes
     psychoJS.experiment.addData('val_target_px_x', Math.round(window.innerWidth / 2 + val_x * window.innerWidth));
     psychoJS.experiment.addData('val_target_px_y', Math.round(window.innerHeight / 2 - val_y * window.innerHeight));
+    window.valTarget = [window.innerWidth / 2 + val_x * window.innerWidth,
+                        window.innerHeight / 2 - val_y * window.innerHeight];
     psychoJS.experiment.addData('win_inner_w', window.innerWidth);
     psychoJS.experiment.addData('win_inner_h', window.innerHeight);
     psychoJS.experiment.addData('screen_w', window.screen.width);
@@ -1321,6 +1405,7 @@ function validation_trialRoutineEachFrame() {
 }
 
 
+var _err;
 function validation_trialRoutineEnd(snapshot) {
   return async function () {
     //--- Ending Routine 'validation_trial' ---
@@ -1330,9 +1415,195 @@ function validation_trialRoutineEnd(snapshot) {
       }
     });
     psychoJS.experiment.addData('validation_trial.stopped', globalClock.getTime());
+    const _pts = window.gazeBuffer.filter(p => p.t >= 800);  // первые 0.8 с глаз ещё переводится
+    const _med = a => { const s = [...a].sort((x, y) => x - y), m = Math.floor(s.length / 2);
+                        return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+    let _err = Infinity;
+    if (_pts.length > 5) {
+      _err = Math.hypot(_med(_pts.map(p => p.x)) - window.valTarget[0],
+                        _med(_pts.map(p => p.y)) - window.valTarget[1]);
+    }
+    window.valErrors.push(_err);
+    psychoJS.experiment.addData('val_err_px', Math.round(_err));
+    psychoJS.experiment.addData('calib_attempt', window.calibAttempt);
     // save the gaze points of this dot into the column val_gaze
     gazeStop('val_gaze');
     // the Routine "validation_trial" was not non-slip safe, so reset the non-slip timer
+    routineTimer.reset();
+    
+    // Routines running outside a loop should always advance the datafile row
+    if (currentLoop === psychoJS.experiment) {
+      psychoJS.experiment.nextEntry(snapshot);
+    }
+    return Scheduler.Event.NEXT;
+  }
+}
+
+
+var q_checkMaxDurationReached;
+var _pxPerDeg;
+var q_checkMaxDuration;
+var q_checkComponents;
+function q_checkRoutineBegin(snapshot) {
+  return async function () {
+    TrialHandler.fromSnapshot(snapshot); // ensure that .thisN vals are up to date
+    
+    //--- Prepare to start Routine 'q_check' ---
+    t = 0;
+    frameN = -1;
+    continueRoutine = true; // until we're told otherwise
+    // keep track of whether this Routine was forcibly ended
+    routineForceEnded = false;
+    q_checkClock.reset();
+    routineTimer.reset();
+    q_checkMaxDurationReached = false;
+    // update component parameters for each repeat
+    // setup some python lists for storing info about the mouse_5
+    // current position of the mouse:
+    mouse_5.x = [];
+    mouse_5.y = [];
+    mouse_5.leftButton = [];
+    mouse_5.midButton = [];
+    mouse_5.rightButton = [];
+    mouse_5.time = [];
+    gotValidClick = false; // until a click is received
+    // медианная ошибка по 9 точкам -> градусы
+    const _s = [...window.valErrors].sort((a, b) => a - b), _m = Math.floor(_s.length / 2);
+    const _medErr = _s.length % 2 ? _s[_m] : (_s[_m - 1] + _s[_m]) / 2;
+    const _diag = parseFloat(String(expInfo['screen_diag_in']).replace(',', '.'));
+    const _dist = parseFloat(String(expInfo['distance_cm']).replace(',', '.'));
+    let _pxPerDeg = 44;  // запасное значение, если в диалоге не ввели диагональ/расстояние
+    if (_diag > 0 && _dist > 0) {
+      const _cmPerPx = _diag * 2.54 / Math.hypot(window.screen.width, window.screen.height);
+      _pxPerDeg = 2 * _dist * Math.tan(Math.PI / 360) / _cmPerPx;
+    }
+    const _errDeg = _medErr / _pxPerDeg;
+    const _ok = _errDeg <= window.maxErrDeg;
+    psychoJS.experiment.addData('val_error_deg', Math.round(_errDeg * 100) / 100);
+    psychoJS.experiment.addData('calib_attempt', window.calibAttempt);
+    psychoJS.experiment.addData('calib_ok', _ok);
+    
+    if (_ok) {
+      calib_block.finished = true;   // выходим из цикла попыток
+      quality_text.setText(`Точность ${_errDeg.toFixed(1)}° — отлично!\n\nКликните, чтобы продолжить.`);
+    } else if (window.calibAttempt >= 3) {
+      quality_text.setText(`Точность ${_errDeg.toFixed(1)}°. Попытки закончились, продолжаем.\n\nКликните, чтобы продолжить.`);
+    } else {
+      quality_text.setText(`Точность ${_errDeg.toFixed(1)}° — маловато.\nСядьте поудобнее, держите голову неподвижно, проверьте свет.\n\nКликните, чтобы откалибровать заново.`);
+    }
+    psychoJS.experiment.addData('q_check.started', globalClock.getTime());
+    q_checkMaxDuration = null
+    // keep track of which components have finished
+    q_checkComponents = [];
+    q_checkComponents.push(q_text);
+    q_checkComponents.push(mouse_5);
+    
+    q_checkComponents.forEach( function(thisComponent) {
+      if ('status' in thisComponent)
+        thisComponent.status = PsychoJS.Status.NOT_STARTED;
+       });
+    return Scheduler.Event.NEXT;
+  }
+}
+
+
+function q_checkRoutineEachFrame() {
+  return async function () {
+    //--- Loop for each frame of Routine 'q_check' ---
+    // get current time
+    t = q_checkClock.getTime();
+    frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
+    // update/draw components on each frame
+    
+    // *q_text* updates
+    if (t >= 0.0 && q_text.status === PsychoJS.Status.NOT_STARTED) {
+      // keep track of start time/frame for later
+      q_text.tStart = t;  // (not accounting for frame time here)
+      q_text.frameNStart = frameN;  // exact frame index
+      
+      q_text.setAutoDraw(true);
+    }
+    
+    
+    // if q_text is active this frame...
+    if (q_text.status === PsychoJS.Status.STARTED) {
+    }
+    
+    // *mouse_5* updates
+    if (t >= 0.0 && mouse_5.status === PsychoJS.Status.NOT_STARTED) {
+      // keep track of start time/frame for later
+      mouse_5.tStart = t;  // (not accounting for frame time here)
+      mouse_5.frameNStart = frameN;  // exact frame index
+      
+      mouse_5.status = PsychoJS.Status.STARTED;
+      mouse_5.mouseClock.reset();
+      prevButtonState = mouse_5.getPressed();  // if button is down already this ISN'T a new click
+    }
+    
+    // if mouse_5 is active this frame...
+    if (mouse_5.status === PsychoJS.Status.STARTED) {
+      _mouseButtons = mouse_5.getPressed();
+      if (!_mouseButtons.every( (e,i,) => (e == prevButtonState[i]) )) { // button state changed?
+        prevButtonState = _mouseButtons;
+        if (_mouseButtons.reduce( (e, acc) => (e+acc) ) > 0) { // state changed to a new click
+          _mouseXYs = mouse_5.getPos();
+          mouse_5.x.push(_mouseXYs[0]);
+          mouse_5.y.push(_mouseXYs[1]);
+          mouse_5.leftButton.push(_mouseButtons[0]);
+          mouse_5.midButton.push(_mouseButtons[1]);
+          mouse_5.rightButton.push(_mouseButtons[2]);
+          mouse_5.time.push(mouse_5.mouseClock.getTime());
+          // end routine on response
+          continueRoutine = false;
+        }
+      }
+    }
+    // check for quit (typically the Esc key)
+    if (psychoJS.experiment.experimentEnded || psychoJS.eventManager.getKeys({keyList:['escape']}).length > 0) {
+      return quitPsychoJS('The [Escape] key was pressed. Goodbye!', false);
+    }
+    
+    // check if the Routine should terminate
+    if (!continueRoutine) {  // a component has requested a forced-end of Routine
+      routineForceEnded = true;
+      return Scheduler.Event.NEXT;
+    }
+    
+    continueRoutine = false;  // reverts to True if at least one component still running
+    q_checkComponents.forEach( function(thisComponent) {
+      if ('status' in thisComponent && thisComponent.status !== PsychoJS.Status.FINISHED) {
+        continueRoutine = true;
+      }
+    });
+    
+    // refresh the screen if continuing
+    if (continueRoutine) {
+      return Scheduler.Event.FLIP_REPEAT;
+    } else {
+      return Scheduler.Event.NEXT;
+    }
+  };
+}
+
+
+function q_checkRoutineEnd(snapshot) {
+  return async function () {
+    //--- Ending Routine 'q_check' ---
+    q_checkComponents.forEach( function(thisComponent) {
+      if (typeof thisComponent.setAutoDraw === 'function') {
+        thisComponent.setAutoDraw(false);
+      }
+    });
+    psychoJS.experiment.addData('q_check.stopped', globalClock.getTime());
+    // store data for psychoJS.experiment (ExperimentHandler)
+    psychoJS.experiment.addData('mouse_5.x', mouse_5.x);
+    psychoJS.experiment.addData('mouse_5.y', mouse_5.y);
+    psychoJS.experiment.addData('mouse_5.leftButton', mouse_5.leftButton);
+    psychoJS.experiment.addData('mouse_5.midButton', mouse_5.midButton);
+    psychoJS.experiment.addData('mouse_5.rightButton', mouse_5.rightButton);
+    psychoJS.experiment.addData('mouse_5.time', mouse_5.time);
+    
+    // the Routine "q_check" was not non-slip safe, so reset the non-slip timer
     routineTimer.reset();
     
     // Routines running outside a loop should always advance the datafile row
