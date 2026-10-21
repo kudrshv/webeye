@@ -152,7 +152,7 @@ var mouse_4;
 var validation_trialClock;
 var val_dot;
 var q_checkClock;
-var q_text;
+var quality_text;
 var mouse_5;
 var stim_trialClock;
 var stim_image;
@@ -284,8 +284,6 @@ async function experimentInit() {
     win: psychoJS.window,
   });
   mouse_4.mouseClock = new util.Clock();
-  window.webgazer.removeMouseEventListeners(); // дальше мышь модель не трогает
-  window.valErrors = [];
   // Initialize components for Routine "validation_trial"
   validation_trialClock = new util.Clock();
   val_dot = new visual.Polygon({
@@ -306,9 +304,9 @@ async function experimentInit() {
   
   // Initialize components for Routine "q_check"
   q_checkClock = new util.Clock();
-  q_text = new visual.TextStim({
+  quality_text = new visual.TextStim({
     win: psychoJS.window,
-    name: 'q_text',
+    name: 'quality_text',
     text: ' ',
     font: 'Arial',
     units: undefined, 
@@ -1182,6 +1180,9 @@ function intro_validation_trialRoutineBegin(snapshot) {
     // update component parameters for each repeat
     // setup some python lists for storing info about the mouse_4
     gotValidClick = false; // until a click is received
+    // Run 'Begin Routine' code from code_2
+    window.webgazer.removeMouseEventListeners(); // дальше мышь модель не трогает
+    window.valErrors = [];
     psychoJS.experiment.addData('intro_validation_trial.started', globalClock.getTime());
     intro_validation_trialMaxDuration = null
     // keep track of which components have finished
@@ -1495,7 +1496,7 @@ function q_checkRoutineBegin(snapshot) {
     q_checkMaxDuration = null
     // keep track of which components have finished
     q_checkComponents = [];
-    q_checkComponents.push(q_text);
+    q_checkComponents.push(quality_text);
     q_checkComponents.push(mouse_5);
     
     q_checkComponents.forEach( function(thisComponent) {
@@ -1515,18 +1516,18 @@ function q_checkRoutineEachFrame() {
     frameN = frameN + 1;// number of completed frames (so 0 is the first frame)
     // update/draw components on each frame
     
-    // *q_text* updates
-    if (t >= 0.0 && q_text.status === PsychoJS.Status.NOT_STARTED) {
+    // *quality_text* updates
+    if (t >= 0.0 && quality_text.status === PsychoJS.Status.NOT_STARTED) {
       // keep track of start time/frame for later
-      q_text.tStart = t;  // (not accounting for frame time here)
-      q_text.frameNStart = frameN;  // exact frame index
+      quality_text.tStart = t;  // (not accounting for frame time here)
+      quality_text.frameNStart = frameN;  // exact frame index
       
-      q_text.setAutoDraw(true);
+      quality_text.setAutoDraw(true);
     }
     
     
-    // if q_text is active this frame...
-    if (q_text.status === PsychoJS.Status.STARTED) {
+    // if quality_text is active this frame...
+    if (quality_text.status === PsychoJS.Status.STARTED) {
     }
     
     // *mouse_5* updates

@@ -163,7 +163,7 @@
         <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
-        <Param val="// Show webcam thumbnail and face feedback box, but not face overlay and gaze dot&amp;#10;window.webgazer.params.showVideoPreview = true;&amp;#10;window.webgazer.params.showFaceFeedbackBox = true;&amp;#10;window.webgazer.params.showFaceOverlay = false;&amp;#10;window.webgazer.params.showGazeDot = false&amp;#10;// Start eye tracking&amp;#10;window.webgazer&amp;#10;    // Called on each eye tracking update&amp;#10;    .setGazeListener(function(data, clock) {&amp;#10;      if (data !== null) {&amp;#10;        // Remove first element from gazes array, add current gaze at the end&amp;#10;        window.xGazes.shift();&amp;#10;        window.xGazes.push(data.x);&amp;#10;        window.yGazes.shift();&amp;#10;        window.yGazes.push(data.y);&amp;#10;        // keep the point if a trial is recording&amp;#10;        if (window.gazeRecording) {&amp;#10;          window.gazeBuffer.push({x: Math.round(data.x), y: Math.round(data.y), t: Math.round(performance.now() - window.gazeT0)});&amp;#10;        }&amp;#10;       }&amp;#10;    })&amp;#10;    .begin();&amp;#10;    //.showPredictionPoints(true); &amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="window.webgazer.saveDataAcrossSessions(false);  // не хранить и не подгружать калибровку из браузера&amp;#10;window.webgazer.clearData();                    // стереть то, что осталось от прошлых запусков&amp;#10;// Show webcam thumbnail and face feedback box, but not face overlay and gaze dot&amp;#10;window.webgazer.params.showVideoPreview = true;&amp;#10;window.webgazer.params.showFaceFeedbackBox = true;&amp;#10;window.webgazer.params.showFaceOverlay = false;&amp;#10;window.webgazer.params.showGazeDot = false&amp;#10;// Start eye tracking&amp;#10;window.webgazer&amp;#10;    // Called on each eye tracking update&amp;#10;    .setGazeListener(function(data, clock) {&amp;#10;      if (data !== null) {&amp;#10;        // Remove first element from gazes array, add current gaze at the end&amp;#10;        window.xGazes.shift();&amp;#10;        window.xGazes.push(data.x);&amp;#10;        window.yGazes.shift();&amp;#10;        window.yGazes.push(data.y);&amp;#10;        // keep the point if a trial is recording&amp;#10;        if (window.gazeRecording) {&amp;#10;          window.gazeBuffer.push({x: Math.round(data.x), y: Math.round(data.y), t: Math.round(performance.now() - window.gazeT0)});&amp;#10;        }&amp;#10;       }&amp;#10;    })&amp;#10;    .begin();&amp;#10;    //.showPredictionPoints(true); &amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
         <Param val="JS" valType="str" updates="None" name="Code Type"/>
         <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
@@ -240,6 +240,23 @@
         <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="mouse onset" valType="str" updates="constant" name="timeRelativeTo"/>
       </MouseComponent>
+      <CodeComponent name="code" plugin="None">
+        <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
+        <Param val="JS" valType="str" updates="None" name="Code Type"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
+        <Param val="window.calibAttempt += 1;&amp;#10;window.webgazer.clearData();                 // каждая попытка — с нуля&amp;#10;window.webgazer.addMouseEventListeners();    // клики снова обучают модель" valType="extendedCode" updates="constant" name="End JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Routine"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="code" valType="code" updates="None" name="name"/>
+      </CodeComponent>
     </Routine>
     <Routine name="calibration_trial">
       <RoutineSettingsComponent name="calibration_trial" plugin="None">
@@ -293,7 +310,7 @@
         <Param val="" valType="list" updates="constant" name="correctAns"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
-        <Param val="valid click" valType="str" updates="constant" name="forceEndRoutineOnPress"/>
+        <Param val="never" valType="str" updates="constant" name="forceEndRoutineOnPress"/>
         <Param val="mouse_3" valType="code" updates="None" name="name"/>
         <Param val="True" valType="bool" updates="constant" name="newClicksOnly"/>
         <Param val="final" valType="str" updates="None" name="saveMouseState"/>
@@ -313,11 +330,11 @@
         <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
-        <Param val="// Position calibration_square using width and height of window&amp;#10;var canvas = psychoJS.window.size;&amp;#10;var scaling = [&amp;#10;  canvas[0] &lt;= canvas[1]? 1: canvas[0] / canvas[1],&amp;#10;  canvas[1] &lt;= canvas[0]? 1: canvas[1] / canvas[0]&amp;#10;];&amp;#10;var newPos = [&amp;#10;    calibration_x * scaling[0],&amp;#10;    calibration_y * scaling[1]&amp;#10;];&amp;#10;console.log(newPos);&amp;#10;calibration_square.setPos(newPos);" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="// Position calibration_square using width and height of window&amp;#10;var canvas = psychoJS.window.size;&amp;#10;var scaling = [&amp;#10;  canvas[0] &lt;= canvas[1]? 1: canvas[0] / canvas[1],&amp;#10;  canvas[1] &lt;= canvas[0]? 1: canvas[1] / canvas[0]&amp;#10;];&amp;#10;var newPos = [&amp;#10;    calibration_x * scaling[0],&amp;#10;    calibration_y * scaling[1]&amp;#10;];&amp;#10;console.log(newPos);&amp;#10;calibration_square.setPos(newPos);&amp;#10;&amp;#10;window.calClicks = 0;&amp;#10;window.calWasPressed = false;&amp;#10;calibration_square.setOpacity(1);" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
         <Param val="JS" valType="str" updates="None" name="Code Type"/>
         <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
-        <Param val="// Hide webcam thumbnail if eyes are in validation box&amp;#10;if (webgazer.checkEyesInValidationBox() === true) {&amp;#10;  // If last time that eyes were outside of validation box was longer than &amp;#10;  // window.eyesReturnedDelay ago, hide thumbnail&amp;#10;  if (&amp;#10;    document.getElementById('webgazerFaceFeedbackBox').style.display != 'none' &amp;&amp;&amp;#10;    (new Date).getTime() &gt; window.eyesExitedTimestamp + window.eyesReturnedDelay&amp;#10;  ) {   &amp;#10;    document.getElementById('webgazerFaceFeedbackBox').style.display = 'none';&amp;#10;    document.getElementById('webgazerVideoFeed').style.display = 'none';&amp;#10;  }&amp;#10;} else {&amp;#10;    // Eyes outside of validation box; show thumbnail&amp;#10;    window.eyesExitedTimestamp = (new Date).getTime();&amp;#10;    document.getElementById('webgazerFaceFeedbackBox').style.display = 'block';&amp;#10;    document.getElementById('webgazerVideoFeed').style.display = 'block';&amp;#10;}&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="// Hide webcam thumbnail if eyes are in validation box&amp;#10;if (webgazer.checkEyesInValidationBox() === true) {&amp;#10;  // If last time that eyes were outside of validation box was longer than &amp;#10;  // window.eyesReturnedDelay ago, hide thumbnail&amp;#10;  if (&amp;#10;    document.getElementById('webgazerFaceFeedbackBox').style.display != 'none' &amp;&amp;&amp;#10;    (new Date).getTime() &gt; window.eyesExitedTimestamp + window.eyesReturnedDelay&amp;#10;  ) {   &amp;#10;    document.getElementById('webgazerFaceFeedbackBox').style.display = 'none';&amp;#10;    document.getElementById('webgazerVideoFeed').style.display = 'none';&amp;#10;  }&amp;#10;} else {&amp;#10;    // Eyes outside of validation box; show thumbnail&amp;#10;    window.eyesExitedTimestamp = (new Date).getTime();&amp;#10;    document.getElementById('webgazerFaceFeedbackBox').style.display = 'block';&amp;#10;    document.getElementById('webgazerVideoFeed').style.display = 'block';&amp;#10;}&amp;#10;&amp;#10;&amp;#10;   // считаем клики по квадрату (только новые нажатия)&amp;#10;const _pressed = mouse_3.getPressed()[0] === 1;&amp;#10;if (_pressed &amp;&amp; !window.calWasPressed &amp;&amp; mouse_3.isPressedIn(calibration_square)) {&amp;#10;  window.calClicks += 1;&amp;#10;  calibration_square.setOpacity(1 - 0.7 * window.calClicks / window.calNClicks); // квадрат бледнеет&amp;#10;}&amp;#10;window.calWasPressed = _pressed;&amp;#10;if (window.calClicks &gt;= window.calNClicks) {&amp;#10;  continueRoutine = false;&amp;#10;}" valType="extendedCode" updates="constant" name="Each JS Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Routine"/>
@@ -454,6 +471,23 @@
         <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="mouse onset" valType="str" updates="constant" name="timeRelativeTo"/>
       </MouseComponent>
+      <CodeComponent name="code_2" plugin="None">
+        <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
+        <Param val="window.webgazer.removeMouseEventListeners(); // дальше мышь модель не трогает&amp;#10;window.valErrors = [];" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="window.webgazer.removeMouseEventListeners(); // дальше мышь модель не трогает&amp;#10;window.valErrors = [];" valType="extendedCode" updates="constant" name="Begin Routine"/>
+        <Param val="JS" valType="str" updates="None" name="Code Type"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Routine"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="code_2" valType="code" updates="None" name="name"/>
+      </CodeComponent>
     </Routine>
     <Routine name="validation_trial">
       <RoutineSettingsComponent name="validation_trial" plugin="None">
@@ -507,23 +541,116 @@
         <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
-        <Param val="// place the dot: val_x, val_y are fractions of the window (same scheme as the calibration points)&amp;#10;var canvas = psychoJS.window.size;&amp;#10;var scaling = [&amp;#10;  canvas[0] &lt;= canvas[1] ? 1 : canvas[0] / canvas[1],&amp;#10;  canvas[1] &lt;= canvas[0] ? 1 : canvas[1] / canvas[0]&amp;#10;];&amp;#10;val_dot.setPos([val_x * scaling[0], val_y * scaling[1]]);&amp;#10;// remember where the dot is on the screen (px of the browser window) and the screen/window sizes&amp;#10;psychoJS.experiment.addData('val_target_px_x', Math.round(window.innerWidth / 2 + val_x * window.innerWidth));&amp;#10;psychoJS.experiment.addData('val_target_px_y', Math.round(window.innerHeight / 2 - val_y * window.innerHeight));&amp;#10;psychoJS.experiment.addData('win_inner_w', window.innerWidth);&amp;#10;psychoJS.experiment.addData('win_inner_h', window.innerHeight);&amp;#10;psychoJS.experiment.addData('screen_w', window.screen.width);&amp;#10;psychoJS.experiment.addData('screen_h', window.screen.height);&amp;#10;psychoJS.experiment.addData('pixel_ratio', window.devicePixelRatio);&amp;#10;psychoJS.experiment.addData('user_agent', navigator.userAgent);&amp;#10;gazeStart();" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="// place the dot: val_x, val_y are fractions of the window (same scheme as the calibration points)&amp;#10;var canvas = psychoJS.window.size;&amp;#10;var scaling = [&amp;#10;  canvas[0] &lt;= canvas[1] ? 1 : canvas[0] / canvas[1],&amp;#10;  canvas[1] &lt;= canvas[0] ? 1 : canvas[1] / canvas[0]&amp;#10;];&amp;#10;val_dot.setPos([val_x * scaling[0], val_y * scaling[1]]);&amp;#10;// remember where the dot is on the screen (px of the browser window) and the screen/window sizes&amp;#10;psychoJS.experiment.addData('val_target_px_x', Math.round(window.innerWidth / 2 + val_x * window.innerWidth));&amp;#10;psychoJS.experiment.addData('val_target_px_y', Math.round(window.innerHeight / 2 - val_y * window.innerHeight));&amp;#10;window.valTarget = [window.innerWidth / 2 + val_x * window.innerWidth,&amp;#10;                    window.innerHeight / 2 - val_y * window.innerHeight];&amp;#10;psychoJS.experiment.addData('win_inner_w', window.innerWidth);&amp;#10;psychoJS.experiment.addData('win_inner_h', window.innerHeight);&amp;#10;psychoJS.experiment.addData('screen_w', window.screen.width);&amp;#10;psychoJS.experiment.addData('screen_h', window.screen.height);&amp;#10;psychoJS.experiment.addData('pixel_ratio', window.devicePixelRatio);&amp;#10;psychoJS.experiment.addData('user_agent', navigator.userAgent);&amp;#10;gazeStart();" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
         <Param val="JS" valType="str" updates="None" name="Code Type"/>
         <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
-        <Param val="// save the gaze points of this dot into the column val_gaze&amp;#10;gazeStop('val_gaze');" valType="extendedCode" updates="constant" name="End JS Routine"/>
+        <Param val="const _pts = window.gazeBuffer.filter(p =&gt; p.t &gt;= 800);  // первые 0.8 с глаз ещё переводится&amp;#10;const _med = a =&gt; { const s = [...a].sort((x, y) =&gt; x - y), m = Math.floor(s.length / 2);&amp;#10;                    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };&amp;#10;let _err = Infinity;&amp;#10;if (_pts.length &gt; 5) {&amp;#10;  _err = Math.hypot(_med(_pts.map(p =&gt; p.x)) - window.valTarget[0],&amp;#10;                    _med(_pts.map(p =&gt; p.y)) - window.valTarget[1]);&amp;#10;}&amp;#10;window.valErrors.push(_err);&amp;#10;psychoJS.experiment.addData('val_err_px', Math.round(_err));&amp;#10;psychoJS.experiment.addData('calib_attempt', window.calibAttempt);&amp;#10;// save the gaze points of this dot into the column val_gaze&amp;#10;gazeStop('val_gaze');" valType="extendedCode" updates="constant" name="End JS Routine"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Routine"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="val_code" valType="code" updates="None" name="name"/>
+      </CodeComponent>
+    </Routine>
+    <Routine name="q_check">
+      <RoutineSettingsComponent name="q_check" plugin="None">
+        <Param val="none" valType="str" updates="None" name="backgroundFit"/>
+        <Param val="" valType="str" updates="None" name="backgroundImg"/>
+        <Param val="$[0,0,0]" valType="color" updates="None" name="color"/>
+        <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
+        <Param val="" valType="str" updates="constant" name="desc"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="code" updates="None" name="forceNonSlip"/>
+        <Param val="q_check" valType="code" updates="None" name="name"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="constant" name="skipIf"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="False" valType="bool" updates="None" name="useWindowParams"/>
+      </RoutineSettingsComponent>
+      <TextComponent name="quality_text" plugin="None">
+        <Param val="white" valType="color" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="False" valType="code" updates="constant" name="draggable"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="None" valType="str" updates="constant" name="flip"/>
+        <Param val="Arial" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.05" valType="num" updates="constant" name="letterHeight"/>
+        <Param val="quality_text" valType="code" updates="None" name="name"/>
+        <Param val="" valType="num" updates="constant" name="opacity"/>
+        <Param val="0" valType="num" updates="constant" name="ori"/>
+        <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val=" " valType="str" updates="constant" name="text"/>
+        <Param val="from exp settings" valType="str" updates="None" name="units"/>
+        <Param val="" valType="code" updates="None" name="validator"/>
+        <Param val="" valType="num" updates="constant" name="wrapWidth"/>
+      </TextComponent>
+      <MouseComponent name="mouse_5" plugin="None">
+        <Param val="" valType="list" updates="constant" name="clickable"/>
+        <Param val="" valType="list" updates="constant" name="correctAns"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="any click" valType="str" updates="constant" name="forceEndRoutineOnPress"/>
+        <Param val="mouse_5" valType="code" updates="None" name="name"/>
+        <Param val="True" valType="bool" updates="constant" name="newClicksOnly"/>
+        <Param val="on click" valType="str" updates="None" name="saveMouseState"/>
+        <Param val="name," valType="list" updates="set every repeat" name="saveParamsClickable"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
+        <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="mouse onset" valType="str" updates="constant" name="timeRelativeTo"/>
+      </MouseComponent>
+      <CodeComponent name="quality_code" plugin="None">
+        <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
+        <Param val="// медианная ошибка по 9 точкам -&gt; градусы&amp;#10;const _s = [...window.valErrors].sort((a, b) =&gt; a - b), _m = Math.floor(_s.length / 2);&amp;#10;const _medErr = _s.length % 2 ? _s[_m] : (_s[_m - 1] + _s[_m]) / 2;&amp;#10;const _diag = parseFloat(String(expInfo['screen_diag_in']).replace(',', '.'));&amp;#10;const _dist = parseFloat(String(expInfo['distance_cm']).replace(',', '.'));&amp;#10;let _pxPerDeg = 44;  // запасное значение, если в диалоге не ввели диагональ/расстояние&amp;#10;if (_diag &gt; 0 &amp;&amp; _dist &gt; 0) {&amp;#10;  const _cmPerPx = _diag * 2.54 / Math.hypot(window.screen.width, window.screen.height);&amp;#10;  _pxPerDeg = 2 * _dist * Math.tan(Math.PI / 360) / _cmPerPx;&amp;#10;}&amp;#10;const _errDeg = _medErr / _pxPerDeg;&amp;#10;const _ok = _errDeg &lt;= window.maxErrDeg;&amp;#10;psychoJS.experiment.addData('val_error_deg', Math.round(_errDeg * 100) / 100);&amp;#10;psychoJS.experiment.addData('calib_attempt', window.calibAttempt);&amp;#10;psychoJS.experiment.addData('calib_ok', _ok);&amp;#10;&amp;#10;if (_ok) {&amp;#10;  calib_block.finished = true;   // выходим из цикла попыток&amp;#10;  quality_text.setText(`Точность ${_errDeg.toFixed(1)}° — отлично!\n\nКликните, чтобы продолжить.`);&amp;#10;} else if (window.calibAttempt &gt;= 3) {&amp;#10;  quality_text.setText(`Точность ${_errDeg.toFixed(1)}°. Попытки закончились, продолжаем.\n\nКликните, чтобы продолжить.`);&amp;#10;} else {&amp;#10;  quality_text.setText(`Точность ${_errDeg.toFixed(1)}° — маловато.\nСядьте поудобнее, держите голову неподвижно, проверьте свет.\n\nКликните, чтобы откалибровать заново.`);&amp;#10;}" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
+        <Param val="JS" valType="str" updates="None" name="Code Type"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End JS Routine"/>
+        <Param val="" valType="extendedCode" updates="constant" name="End Routine"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="quality_code" valType="code" updates="None" name="name"/>
       </CodeComponent>
     </Routine>
   </Routines>
   <Flow>
     <Routine name="loading_trial"/>
     <Routine name="webcam_trial"/>
+    <LoopInitiator loopType="TrialHandler" name="calib_block">
+      <Param name="Selected rows" updates="None" val="" valType="code"/>
+      <Param name="conditions" updates="None" val="None" valType="str"/>
+      <Param name="conditionsFile" updates="None" val="" valType="file"/>
+      <Param name="endPoints" updates="None" val="[0, 1]" valType="code"/>
+      <Param name="isTrials" updates="None" val="True" valType="bool"/>
+      <Param name="loopType" updates="None" val="sequential" valType="str"/>
+      <Param name="nReps" updates="None" val="3" valType="code"/>
+      <Param name="name" updates="None" val="calib_block" valType="code"/>
+      <Param name="random seed" updates="None" val="" valType="code"/>
+    </LoopInitiator>
     <Routine name="intro_calibatrion_trial"/>
     <LoopInitiator loopType="TrialHandler" name="trials">
       <Param name="Selected rows" updates="None" val="" valType="str"/>
@@ -552,6 +679,8 @@
     </LoopInitiator>
     <Routine name="validation_trial"/>
     <LoopTerminator name="val_loop"/>
+    <Routine name="q_check"/>
+    <LoopTerminator name="calib_block"/>
     <LoopInitiator loopType="TrialHandler" name="stim_loop">
       <Param name="Selected rows" updates="None" val="" valType="str"/>
       <Param name="conditions" updates="None" val="[OrderedDict([('stim_file', 'stim1.jpg'), ('stim_label', 'example A')]), OrderedDict([('stim_file', 'stim2.jpg'), ('stim_label', 'example B')])]" valType="str"/>
